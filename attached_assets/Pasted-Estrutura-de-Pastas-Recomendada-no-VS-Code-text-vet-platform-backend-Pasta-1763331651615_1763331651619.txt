@@ -1,0 +1,147 @@
+Estrutura de Pastas Recomendada no VS Code
+text
+vet-platform/
+├─ backend/                 # Pasta do backend (Node.js + Express)
+│  ├─ models/               # Schemas do banco de dados (MongoDB)
+│  │   └─ Animal.js         # Modelo de dados para animais
+│  ├─ routes/               # Rotas HTTP da API
+│  │   └─ animal.js         # Endpoints para animais
+│  ├─ server.js             # Arquivo principal do servidor Node.js
+│  └─ .env                  # Dados de configuração (ex: string de conexão do MongoDB)
+├─ frontend/                # Pasta do frontend (React)
+│  ├─ src/
+│  │   ├─ components/       # Componentes React reutilizáveis
+│  │   │   └─ AnimalTable.js# Tabela para listar os animais
+│  │   ├─ App.js            # Página principal do frontend
+│  │   └─ index.js          # Bootstrap do React
+│  └─ package.json          # Configurações do React
+├─ README.md                # Explicações do projeto
+Backend (Node.js + Express + MongoDB) — Pasta /backend
+server.js
+javascript
+const express = require('express');
+const mongoose = require('mongoose');
+require('dotenv').config();
+
+const animalRoutes = require('./routes/animal');
+const app = express();
+
+app.use(express.json());
+app.use('/api/animals', animalRoutes);
+
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => app.listen(3001, () => console.log('Server running on port 3001')))
+    .catch(err => console.log(err));
+models/Animal.js
+javascript
+const mongoose = require('mongoose');
+
+const animalSchema = new mongoose.Schema({
+  nome: String,
+  especie: String,
+  idade: Number,
+  temperatura: Number,
+  frequenciaCardiaca: Number,
+  atividade: String
+});
+
+module.exports = mongoose.model('Animal', animalSchema);
+routes/animal.js
+javascript
+const express = require('express');
+const router = express.Router();
+const Animal = require('../models/Animal');
+
+// Listar todos os animais
+router.get('/', async (req, res) => {
+  const animals = await Animal.find();
+  res.json(animals);
+});
+
+// Adicionar novo animal
+router.post('/', async (req, res) => {
+  const animal = new Animal(req.body);
+  await animal.save();
+  res.json(animal);
+});
+
+module.exports = router;
+.env
+text
+MONGO_URI=mongodb://localhost:27017/vetplatform
+Frontend (React) — Pasta /frontend
+src/App.js
+javascript
+import React, { useEffect, useState } from 'react';
+import AnimalTable from './components/AnimalTable';
+
+function App() {
+  const [animals, setAnimals] = useState([]);
+  useEffect(() => {
+    fetch('http://localhost:3001/api/animals')
+      .then(res => res.json())
+      .then(setAnimals);
+  }, []);
+  return (
+    <div>
+      <h1>Monitoramento Veterinário</h1>
+      <AnimalTable animals={animals} />
+    </div>
+  );
+}
+export default App;
+src/components/AnimalTable.js
+javascript
+import React from 'react';
+
+function AnimalTable({ animals }) {
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Espécie</th>
+          <th>Idade</th>
+          <th>Temperatura</th>
+          <th>Freq. Cardíaca</th>
+          <th>Atividade</th>
+        </tr>
+      </thead>
+      <tbody>
+        {animals.map(animal => (
+          <tr key={animal._id}>
+            <td>{animal.nome}</td>
+            <td>{animal.especie}</td>
+            <td>{animal.idade}</td>
+            <td>{animal.temperatura}</td>
+            <td>{animal.frequenciaCardiaca}</td>
+            <td>{animal.atividade}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+export default AnimalTable;
+src/index.js
+javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+
+ReactDOM.render(<App />, document.getElementById('root'));
+Passo a Passo para Montar o Site no VS Code
+Crie a pasta principal (vet-platform) e dentro dela crie as subpastas backend e frontend.
+
+No backend: salve server.js na raiz da pasta, Animal.js em models/, animal.js em routes/ e configure o .env com a string de conexão do MongoDB.
+
+Instale as dependências do backend: navegue até /vet-platform/backend e execute npm install express mongoose dotenv.
+
+Inicie o MongoDB local e execute node server.js para iniciar o backend.
+
+No frontend: navegue até /frontend e execute npx create-react-app ., exclua arquivos desnecessários e salve os códigos fornecidos nas respectivas pastas.
+
+Instale dependências adicionais se necessário e configure para rodar com npm start.
+
+Leia o README.md que pode detalhar dependências e uso básico da plataforma.
+
